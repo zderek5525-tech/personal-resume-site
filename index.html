@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>姓名占位 | 个人简历</title>
+    <meta
+      name="description"
+      content="一页式个人简历介绍网页，用于展示个人定位、核心能力、工作经历、项目成果和联系方式。"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar" aria-label="顶部信息">
+      <a class="brand" href="#home">姓名占位</a>
+      <button class="interview-toggle" type="button" data-interview-mode>面试官视角</button>
+    </header>
+
+    <nav class="nav side-nav" aria-label="页面导航">
+        <a href="#home">首页</a>
+        <a href="#profile">简介</a>
+        <a href="#skills">技能</a>
+        <a href="#experience">经历</a>
+        <a href="#projects">项目</a>
+        <a href="#contact">联系</a>
+    </nav>
+
+    <main>
+      <section id="home" class="hero">
+        <img class="hero-image" src="./assets/hero-workspace.png" alt="整洁的现代工作台" />
+        <div class="hero-shade" aria-hidden="true"></div>
+
+        <div class="hero-inner">
+          <div class="hero-copy">
+            <p class="eyebrow">Resume Website</p>
+            <h1>姓名占位</h1>
+            <p class="role">目标岗位 / 专业方向占位</p>
+            <p class="lead">
+              用一句话说明你的核心价值：我擅长把复杂问题拆清楚，并用可靠的方法交付可落地的结果。
+            </p>
+            <div class="hero-actions">
+              <a class="button primary" href="#projects">查看代表项目</a>
+              <a class="button secondary" href="#contact">获取联系方式</a>
+            </div>
+          </div>
+
+          <aside class="resume-card" aria-label="简历概要">
+            <div class="photo-card">
+              <div class="photo-frame" data-photo-frame>
+                <span data-photo-placeholder>个人相片</span>
+                <img alt="个人相片预览" data-photo-preview hidden />
+              </div>
+              <label class="photo-upload">
+                <input type="file" accept="image/*" data-photo-input />
+                选择相片
+              </label>
+              <p class="photo-note" data-photo-note>推荐使用正面职业照或生活照。</p>
+            </div>
+            <dl class="quick-info">
+              <div>
+                <dt>城市</dt>
+                <dd>城市占位</dd>
+              </div>
+              <div>
+                <dt>经验</dt>
+                <dd>X 年相关经验</dd>
+              </div>
+              <div>
+                <dt>状态</dt>
+                <dd>开放沟通 / 求职中</dd>
+              </div>
+              <div>
+                <dt>邮箱</dt>
+                <dd>your.email@example.com</dd>
+              </div>
+            </dl>
+            <button class="card-action" type="button" data-pulse-card>查看简历摘要</button>
+          </aside>
+        </div>
+      </section>
+
+      <section class="stats reveal" aria-label="核心亮点">
+        <div tabindex="0" data-stat-message="项目数量用于快速展示经验覆盖面，后续可替换成真实作品数量。">
+          <strong>10+</strong>
+          <span>项目 / 作品占位</span>
+        </div>
+        <div tabindex="0" data-stat-message="核心能力建议控制在 3 个以内，方便面试官记住重点。">
+          <strong>3</strong>
+          <span>核心能力方向</span>
+        </div>
+        <div tabindex="0" data-stat-message="满意度可以替换成真实反馈、复购率、通过率或评价数据。">
+          <strong>95%</strong>
+          <span>交付满意度占位</span>
+        </div>
+        <div tabindex="0" data-stat-message="响应速度可以替换成你的沟通效率或项目推进节奏。">
+          <strong>24h</strong>
+          <span>响应速度占位</span>
+        </div>
+        <p class="stats-feedback" data-stats-feedback>点击上方数据，可查看它适合放什么信息。</p>
+      </section>
+
+      <section id="profile" class="section section-bg bg-profile two-column reveal">
+        <span class="bg-layer" aria-hidden="true"></span>
+        <div>
+          <p class="section-label">个人简介</p>
+          <h2>一个让招聘者快速看懂你的页面。</h2>
+        </div>
+        <div class="section-text">
+          <p>
+            这里放 2 到 3 句话：说明你的专业背景、擅长领域、做事风格和正在寻找的机会。不要写太满，
+            重点突出“你能解决什么问题”。
+          </p>
+          <p>
+            可替换示例：我是一名「岗位占位」，长期关注「领域占位」。我擅长「能力占位」，
+            曾参与「项目/行业占位」，希望在「目标方向占位」中继续创造价值。
+          </p>
+        </div>
+      </section>
+
+      <section id="skills" class="section section-bg bg-skills reveal">
+        <span class="bg-layer" aria-hidden="true"></span>
+        <div class="section-heading">
+          <p class="section-label">核心能力</p>
+          <h2>用少量关键词展示你的强项。</h2>
+        </div>
+        <div class="segment-control" aria-label="切换能力说明">
+          <button class="segment active" type="button" data-skill-tab="analysis">分析</button>
+          <button class="segment" type="button" data-skill-tab="delivery">交付</button>
+          <button class="segment" type="button" data-skill-tab="communication">表达</button>
+        </div>
+        <p class="skill-summary" data-skill-summary>
+          当前重点：把信息、数据和需求整理成清楚的判断，并转化成可执行方案。
+        </p>
+        <div class="skill-grid">
+          <article class="panel">
+            <span class="panel-kicker">01</span>
+            <h3>能力方向一</h3>
+            <p>一句话说明你在这个方向能完成什么，例如数据分析、产品设计、前端开发或科研写作。</p>
+            <div class="tags">
+              <span>关键词</span>
+              <span>工具</span>
+              <span>方法</span>
+            </div>
+          </article>
+          <article class="panel">
+            <span class="panel-kicker">02</span>
+            <h3>能力方向二</h3>
+            <p>说明你的执行能力和交付方式，例如需求拆解、流程自动化、报告整理或项目管理。</p>
+            <div class="tags">
+              <span>关键词</span>
+              <span>工具</span>
+              <span>方法</span>
+            </div>
+          </article>
+          <article class="panel">
+            <span class="panel-kicker">03</span>
+            <h3>能力方向三</h3>
+            <p>补充你的差异化能力，例如跨学科沟通、英文写作、可视化表达或商业分析。</p>
+            <div class="tags">
+              <span>关键词</span>
+              <span>工具</span>
+              <span>方法</span>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="experience" class="section section-bg bg-experience two-column reveal">
+        <span class="bg-layer" aria-hidden="true"></span>
+        <div>
+          <p class="section-label">工作 / 学习经历</p>
+          <h2>按时间线展示关键经历。</h2>
+        </div>
+        <div class="timeline">
+          <article class="timeline-item">
+            <span>2025 - 至今</span>
+            <h3>公司 / 学校 / 实验室占位</h3>
+            <p>岗位或角色占位。写清楚你负责什么、产出什么、带来了什么结果。</p>
+            <button class="text-button" type="button" data-toggle-details>展开详情</button>
+            <p class="details" hidden>可补充：负责的业务、合作对象、核心方法、代表成果和量化数据。</p>
+          </article>
+          <article class="timeline-item">
+            <span>2023 - 2025</span>
+            <h3>上一段经历占位</h3>
+            <p>用 1 到 2 句话说明亮点，优先写成果，不写流水账。</p>
+            <button class="text-button" type="button" data-toggle-details>展开详情</button>
+            <p class="details" hidden>可补充：项目规模、个人贡献、关键挑战、复盘经验和证明材料。</p>
+          </article>
+          <article class="timeline-item">
+            <span>2021 - 2023</span>
+            <h3>教育背景 / 早期经历占位</h3>
+            <p>可放专业、方向、课程、奖项或重要训练经历。</p>
+            <button class="text-button" type="button" data-toggle-details>展开详情</button>
+            <p class="details" hidden>可补充：主修课程、课题方向、竞赛奖项、证书和导师评价。</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="projects" class="section section-bg bg-projects reveal">
+        <span class="bg-layer" aria-hidden="true"></span>
+        <div class="section-heading">
+          <p class="section-label">代表项目</p>
+          <h2>用成果说话。</h2>
+        </div>
+        <div class="project-list">
+          <article class="project">
+            <div>
+              <span class="project-meta">项目类型 / 时间占位</span>
+              <h3>项目名称占位一</h3>
+              <p>一句话说明项目目标，再用一句话说明你的贡献和最终结果。</p>
+              <p class="project-detail" hidden>亮点占位：用一个指标说明结果，例如效率提升 X%、覆盖 X 人、节省 X 小时。</p>
+            </div>
+            <button class="project-action" type="button" data-project-more>展开亮点</button>
+          </article>
+          <article class="project">
+            <div>
+              <span class="project-meta">项目类型 / 时间占位</span>
+              <h3>项目名称占位二</h3>
+              <p>适合放数据分析、产品方案、代码项目、论文成果、运营案例或设计作品。</p>
+              <p class="project-detail" hidden>亮点占位：说明你负责的部分、用了什么方法、最后交付了什么。</p>
+            </div>
+            <button class="project-action" type="button" data-project-more>展开亮点</button>
+          </article>
+          <article class="project">
+            <div>
+              <span class="project-meta">项目类型 / 时间占位</span>
+              <h3>项目名称占位三</h3>
+              <p>建议突出可量化成果，例如效率提升、成本降低、增长指标或用户反馈。</p>
+              <p class="project-detail" hidden>亮点占位：这里可以放作品链接、截图说明、论文 DOI 或代码仓库。</p>
+            </div>
+            <button class="project-action" type="button" data-project-more>展开亮点</button>
+          </article>
+        </div>
+      </section>
+
+      <section id="contact" class="section section-bg bg-contact contact-section reveal">
+        <span class="bg-layer" aria-hidden="true"></span>
+        <div>
+          <p class="section-label">联系方式</p>
+          <h2>把真实邮箱、电话、社交链接放在这里。</h2>
+        </div>
+        <div class="contact-panel">
+          <a href="mailto:your.email@example.com">your.email@example.com</a>
+          <a href="https://github.com/" target="_blank" rel="noreferrer">GitHub / 作品集链接占位</a>
+          <a href="https://www.linkedin.com/" target="_blank" rel="noreferrer">LinkedIn / 社交主页占位</a>
+          <button class="copy-button" type="button" data-copy-email="your.email@example.com">复制邮箱</button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>© 2026 姓名占位</span>
+      <a href="#home">回到顶部</a>
+    </footer>
+    <button class="back-top" type="button" data-back-top aria-label="回到顶部">↑</button>
+    <script src="./script.js"></script>
+  </body>
+</html>
