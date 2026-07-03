@@ -77,14 +77,26 @@ const updateDerivedFields = () => {
   }
 };
 
-const getDefaultLayout = () => ({ x: 0, y: 0, scale: 1 });
+const getDefaultLayout = () => ({ x: 0, y: 0, width: null, height: null });
 
 const applyEditableLayout = (item) => {
   const layout = editableLayouts[item.dataset.editKey] || getDefaultLayout();
   item.style.setProperty("--edit-x", `${layout.x}px`);
   item.style.setProperty("--edit-y", `${layout.y}px`);
-  item.style.setProperty("--edit-scale", String(layout.scale));
-  item.toggleAttribute("data-layout-active", layout.x !== 0 || layout.y !== 0 || layout.scale !== 1);
+  if (Number.isFinite(layout.width)) {
+    item.style.width = `${layout.width}px`;
+  } else {
+    item.style.removeProperty("width");
+  }
+  if (Number.isFinite(layout.height)) {
+    item.style.minHeight = `${layout.height}px`;
+  } else {
+    item.style.removeProperty("min-height");
+  }
+  item.toggleAttribute(
+    "data-layout-active",
+    layout.x !== 0 || layout.y !== 0 || Number.isFinite(layout.width) || Number.isFinite(layout.height),
+  );
 };
 
 const updateEditBoxControls = () => {
@@ -182,6 +194,12 @@ const setActiveEditableItem = (item) => {
   activeEditableItem?.setAttribute("data-selected-editable", "");
   updateEditBoxControls();
 };
+
+const shouldSkipBoxMove = (event, item) =>
+  event.target.closest("[data-edit-box-controls]") ||
+  event.target !== item ||
+  event.button !== 0 ||
+  event.detail > 1;
 
 const setEditing = (enabled) => {
   document.body.classList.toggle("editing-content", enabled);
@@ -281,6 +299,11 @@ editableItems.forEach((item) => {
       }
     }
   });
+  item.addEventListener("pointerdown", (event) => {
+    if (!document.body.classList.contains("editing-content") || shouldSkipBoxMove(event, item)) return;
+    setActiveEditableItem(item);
+    startPointerAction(event, "move", item);
+  });
   item.addEventListener("focus", () => {
     if (document.body.classList.contains("editing-content")) {
       setActiveEditableItem(item);
@@ -288,20 +311,22 @@ editableItems.forEach((item) => {
   });
 });
 
-const startPointerAction = (event, mode) => {
-  if (!activeEditableItem) return;
-  event.preventDefault();
-  const key = activeEditableItem.dataset.editKey;
+const startPointerAction = (event, mode, item = activeEditableItem) => {
+  if (!item) return;
+  const key = item.dataset.editKey;
   const layout = editableLayouts[key] || getDefaultLayout();
+  const rect = item.getBoundingClientRect();
   activePointerAction = {
     key,
-    item: activeEditableItem,
+    item,
     mode,
     startX: event.clientX,
     startY: event.clientY,
     x: layout.x,
     y: layout.y,
-    scale: layout.scale,
+    width: Number.isFinite(layout.width) ? layout.width : rect.width,
+    height: Number.isFinite(layout.height) ? layout.height : rect.height,
+    moved: false,
   };
   document.body.dataset.editPointerActive = mode;
   window.addEventListener("pointermove", handlePointerAction);
@@ -312,14 +337,17 @@ const handlePointerAction = (event) => {
   if (!activePointerAction) return;
   const dx = event.clientX - activePointerAction.startX;
   const dy = event.clientY - activePointerAction.startY;
+  if (!activePointerAction.moved && Math.abs(dx) + Math.abs(dy) < 4) return;
+  event.preventDefault();
+  activePointerAction.moved = true;
   const next = editableLayouts[activePointerAction.key] || getDefaultLayout();
 
   if (activePointerAction.mode === "move") {
     next.x = Math.round(activePointerAction.x + dx);
     next.y = Math.round(activePointerAction.y + dy);
   } else {
-    const delta = (dx + dy) / 180;
-    next.scale = Math.max(0.35, Math.min(2.8, Number((activePointerAction.scale + delta).toFixed(2))));
+    next.width = Math.max(36, Math.round(activePointerAction.width + dx));
+    next.height = Math.max(24, Math.round(activePointerAction.height + dy));
   }
 
   editableLayouts[activePointerAction.key] = next;
@@ -334,11 +362,8 @@ const stopPointerAction = () => {
   updateEditBoxControls();
 };
 
-document.querySelector("[data-edit-box-move]")?.addEventListener("pointerdown", (event) => {
-  startPointerAction(event, "move");
-});
-
 document.querySelector("[data-edit-box-resize]")?.addEventListener("pointerdown", (event) => {
+  event.preventDefault();
   startPointerAction(event, "resize");
 });
 

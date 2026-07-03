@@ -114,7 +114,7 @@ button {
 }
 
 .editable-box {
-  transform: translate(var(--edit-x, 0), var(--edit-y, 0)) scale(var(--edit-scale, 1));
+  transform: translate(var(--edit-x, 0), var(--edit-y, 0));
   transform-origin: top left;
 }
 
@@ -133,6 +133,10 @@ button {
 [data-selected-editable] {
   background: rgba(183, 121, 47, 0.12);
   outline: 2px solid var(--amber);
+}
+
+body.editing-content .editable-box[data-selected-editable] {
+  cursor: move;
 }
 
 body.editing-content .topbar {
@@ -154,7 +158,6 @@ body.editing-content .mobile-cta a {
   pointer-events: none;
 }
 
-.edit-box-move,
 .edit-box-reset {
   position: absolute;
   top: -34px;
@@ -167,19 +170,14 @@ body.editing-content .mobile-cta a {
   font-size: 12px;
   font-weight: 900;
   pointer-events: auto;
-  cursor: grab;
 }
 
 .edit-box-reset {
-  left: 48px;
+  left: 0;
   color: var(--accent-strong);
   background: #fffdf8;
   border: 1px solid rgba(15, 95, 89, 0.28);
   cursor: pointer;
-}
-
-.edit-box-move {
-  left: 0;
 }
 
 .edit-box-resize {
