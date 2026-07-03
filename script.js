@@ -6,6 +6,7 @@ const skillText = {
 
 const EDIT_STORAGE_KEY = "personalResumeEditableContent";
 const PHOTO_STORAGE_KEY = "personalResumePhoto";
+const PUBLISHED_PHOTO_SRC = "./assets/profile-photo.jpg";
 const editableSelectors = [
   ".brand",
   ".hero-copy h1",
@@ -36,8 +37,9 @@ const editableSelectors = [
 const editableItems = [...document.querySelectorAll(editableSelectors.join(","))];
 const originalEditableText = new Map();
 const originalEditableFontSize = new Map();
+const editableLayouts = {};
 let activeEditableItem = null;
-let draggedEditableItem = null;
+let activePointerAction = null;
 
 const navLinks = [...document.querySelectorAll(".nav a")];
 const sections = navLinks
@@ -46,6 +48,7 @@ const sections = navLinks
 
 editableItems.forEach((item, index) => {
   item.dataset.editKey = item.dataset.editKey || `field-${index}`;
+  item.classList.add("editable-box");
   originalEditableText.set(item.dataset.editKey, item.textContent);
   originalEditableFontSize.set(item.dataset.editKey, item.style.fontSize || "");
 });
@@ -74,6 +77,32 @@ const updateDerivedFields = () => {
   }
 };
 
+const getDefaultLayout = () => ({ x: 0, y: 0, scale: 1 });
+
+const applyEditableLayout = (item) => {
+  const layout = editableLayouts[item.dataset.editKey] || getDefaultLayout();
+  item.style.setProperty("--edit-x", `${layout.x}px`);
+  item.style.setProperty("--edit-y", `${layout.y}px`);
+  item.style.setProperty("--edit-scale", String(layout.scale));
+  item.toggleAttribute("data-layout-active", layout.x !== 0 || layout.y !== 0 || layout.scale !== 1);
+};
+
+const updateEditBoxControls = () => {
+  const controls = document.querySelector("[data-edit-box-controls]");
+  if (!controls) return;
+  if (!document.body.classList.contains("editing-content") || !activeEditableItem) {
+    controls.hidden = true;
+    return;
+  }
+
+  const rect = activeEditableItem.getBoundingClientRect();
+  controls.hidden = false;
+  controls.style.left = `${rect.left + window.scrollX}px`;
+  controls.style.top = `${rect.top + window.scrollY}px`;
+  controls.style.width = `${Math.max(44, rect.width)}px`;
+  controls.style.height = `${Math.max(28, rect.height)}px`;
+};
+
 const setPhotoPreview = (src, message) => {
   const preview = document.querySelector("[data-photo-preview]");
   const placeholder = document.querySelector("[data-photo-placeholder]");
@@ -91,6 +120,16 @@ const applySavedPhoto = () => {
   if (savedPhoto) {
     setPhotoPreview(savedPhoto, "相片已保存，刷新页面后仍会显示。");
   }
+};
+
+const applyPublishedPhoto = () => {
+  if (localStorage.getItem(PHOTO_STORAGE_KEY)) return;
+
+  const image = new Image();
+  image.addEventListener("load", () => {
+    setPhotoPreview(PUBLISHED_PHOTO_SRC, "相片已发布到网站，其他设备也能看到。");
+  });
+  image.src = `${PUBLISHED_PHOTO_SRC}?v=1`;
 };
 
 const compressPhoto = (file) =>
@@ -116,6 +155,7 @@ const compressPhoto = (file) =>
 const applySavedEdits = () => {
   const saved = readSavedEdits();
   const savedFontSizes = saved.fontSizes || {};
+  Object.assign(editableLayouts, saved.layouts || {});
   Object.keys(skillText).forEach((key) => {
     const savedSkillText = saved[`skill-${key}`];
     if (typeof savedSkillText === "string") {
@@ -131,6 +171,7 @@ const applySavedEdits = () => {
     if (typeof fontSize === "string") {
       item.style.fontSize = fontSize;
     }
+    applyEditableLayout(item);
   });
   updateDerivedFields();
 };
@@ -139,6 +180,7 @@ const setActiveEditableItem = (item) => {
   activeEditableItem?.removeAttribute("data-selected-editable");
   activeEditableItem = item;
   activeEditableItem?.setAttribute("data-selected-editable", "");
+  updateEditBoxControls();
 };
 
 const setEditing = (enabled) => {
@@ -151,7 +193,6 @@ const setEditing = (enabled) => {
 
   editableItems.forEach((item) => {
     item.setAttribute("contenteditable", enabled ? "plaintext-only" : "false");
-    item.draggable = enabled;
     item.toggleAttribute("spellcheck", enabled);
     if (enabled) {
       item.dataset.editableActive = "";
@@ -162,6 +203,7 @@ const setEditing = (enabled) => {
   if (!enabled) {
     setActiveEditableItem(null);
   }
+  updateEditBoxControls();
 };
 
 const saveEdits = () => {
@@ -181,6 +223,7 @@ const saveEdits = () => {
     next[`skill-${key}`] = skillText[key];
   });
   next.fontSizes = fontSizes;
+  next.layouts = editableLayouts;
   localStorage.setItem(EDIT_STORAGE_KEY, JSON.stringify(next));
   updateDerivedFields();
 
@@ -193,6 +236,7 @@ const saveEdits = () => {
 
 applySavedEdits();
 applySavedPhoto();
+applyPublishedPhoto();
 
 document.querySelector("[data-edit-toggle]")?.addEventListener("click", () => {
   setEditing(!document.body.classList.contains("editing-content"));
@@ -211,6 +255,8 @@ document.querySelector("[data-edit-reset]")?.addEventListener("click", () => {
   editableItems.forEach((item) => {
     item.textContent = originalEditableText.get(item.dataset.editKey);
     item.style.fontSize = originalEditableFontSize.get(item.dataset.editKey);
+    delete editableLayouts[item.dataset.editKey];
+    applyEditableLayout(item);
   });
   const preview = document.querySelector("[data-photo-preview]");
   const placeholder = document.querySelector("[data-photo-placeholder]");
@@ -222,6 +268,7 @@ document.querySelector("[data-edit-reset]")?.addEventListener("click", () => {
     note.textContent = "推荐使用正面职业照或生活照。";
   }
   updateDerivedFields();
+  updateEditBoxControls();
 });
 
 editableItems.forEach((item) => {
@@ -234,57 +281,86 @@ editableItems.forEach((item) => {
       }
     }
   });
-  item.addEventListener("dragstart", (event) => {
-    if (!document.body.classList.contains("editing-content")) return;
-    draggedEditableItem = item;
-    event.dataTransfer.effectAllowed = "move";
-    event.dataTransfer.setData("text/plain", item.dataset.editKey);
-    item.dataset.draggingEditable = "";
-  });
-  item.addEventListener("dragend", () => {
-    item.removeAttribute("data-dragging-editable");
-    document.querySelectorAll("[data-drop-target]").forEach((target) => {
-      target.removeAttribute("data-drop-target");
-    });
-    draggedEditableItem = null;
-  });
-  item.addEventListener("dragover", (event) => {
-    if (!document.body.classList.contains("editing-content") || !draggedEditableItem || draggedEditableItem === item) {
-      return;
+  item.addEventListener("focus", () => {
+    if (document.body.classList.contains("editing-content")) {
+      setActiveEditableItem(item);
     }
-    event.preventDefault();
-    item.dataset.dropTarget = "";
   });
-  item.addEventListener("dragleave", () => {
-    item.removeAttribute("data-drop-target");
-  });
-  item.addEventListener("drop", (event) => {
-    if (!document.body.classList.contains("editing-content") || !draggedEditableItem || draggedEditableItem === item) {
-      return;
-    }
-    event.preventDefault();
-    const nextText = item.textContent;
-    const nextFontSize = item.style.fontSize;
-    item.textContent = draggedEditableItem.textContent;
-    item.style.fontSize = draggedEditableItem.style.fontSize;
-    draggedEditableItem.textContent = nextText;
-    draggedEditableItem.style.fontSize = nextFontSize;
-    item.removeAttribute("data-drop-target");
-    setActiveEditableItem(item);
-    updateDerivedFields();
-  });
+});
+
+const startPointerAction = (event, mode) => {
+  if (!activeEditableItem) return;
+  event.preventDefault();
+  const key = activeEditableItem.dataset.editKey;
+  const layout = editableLayouts[key] || getDefaultLayout();
+  activePointerAction = {
+    key,
+    item: activeEditableItem,
+    mode,
+    startX: event.clientX,
+    startY: event.clientY,
+    x: layout.x,
+    y: layout.y,
+    scale: layout.scale,
+  };
+  document.body.dataset.editPointerActive = mode;
+  window.addEventListener("pointermove", handlePointerAction);
+  window.addEventListener("pointerup", stopPointerAction, { once: true });
+};
+
+const handlePointerAction = (event) => {
+  if (!activePointerAction) return;
+  const dx = event.clientX - activePointerAction.startX;
+  const dy = event.clientY - activePointerAction.startY;
+  const next = editableLayouts[activePointerAction.key] || getDefaultLayout();
+
+  if (activePointerAction.mode === "move") {
+    next.x = Math.round(activePointerAction.x + dx);
+    next.y = Math.round(activePointerAction.y + dy);
+  } else {
+    const delta = (dx + dy) / 180;
+    next.scale = Math.max(0.35, Math.min(2.8, Number((activePointerAction.scale + delta).toFixed(2))));
+  }
+
+  editableLayouts[activePointerAction.key] = next;
+  applyEditableLayout(activePointerAction.item);
+  updateEditBoxControls();
+};
+
+const stopPointerAction = () => {
+  window.removeEventListener("pointermove", handlePointerAction);
+  document.body.removeAttribute("data-edit-pointer-active");
+  activePointerAction = null;
+  updateEditBoxControls();
+};
+
+document.querySelector("[data-edit-box-move]")?.addEventListener("pointerdown", (event) => {
+  startPointerAction(event, "move");
+});
+
+document.querySelector("[data-edit-box-resize]")?.addEventListener("pointerdown", (event) => {
+  startPointerAction(event, "resize");
+});
+
+document.querySelector("[data-edit-box-reset]")?.addEventListener("click", () => {
+  if (!activeEditableItem) return;
+  delete editableLayouts[activeEditableItem.dataset.editKey];
+  applyEditableLayout(activeEditableItem);
+  updateEditBoxControls();
 });
 
 document.querySelector("[data-font-smaller]")?.addEventListener("click", () => {
   if (!activeEditableItem) return;
   const current = Number.parseFloat(getComputedStyle(activeEditableItem).fontSize);
   activeEditableItem.style.fontSize = `${Math.max(11, current - 2)}px`;
+  updateEditBoxControls();
 });
 
 document.querySelector("[data-font-larger]")?.addEventListener("click", () => {
   if (!activeEditableItem) return;
   const current = Number.parseFloat(getComputedStyle(activeEditableItem).fontSize);
   activeEditableItem.style.fontSize = `${Math.min(160, current + 2)}px`;
+  updateEditBoxControls();
 });
 
 document.querySelector("[data-photo-input]")?.addEventListener("change", async (event) => {
@@ -391,6 +467,8 @@ document.querySelectorAll(".reveal").forEach((item) => revealObserver.observe(it
 window.addEventListener("scroll", () => {
   updateBackTop();
   setActiveNav();
+  updateEditBoxControls();
 });
+window.addEventListener("resize", updateEditBoxControls);
 updateBackTop();
 setActiveNav();

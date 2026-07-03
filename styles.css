@@ -113,6 +113,18 @@ button {
   border-radius: 4px;
 }
 
+.editable-box {
+  transform: translate(var(--edit-x, 0), var(--edit-y, 0)) scale(var(--edit-scale, 1));
+  transform-origin: top left;
+}
+
+.editable-box[data-selected-editable],
+.editable-box[data-layout-active] {
+  position: relative;
+  z-index: 3;
+  display: inline-block;
+}
+
 [data-editable-active]:focus {
   background: rgba(255, 250, 240, 0.82);
   outline: 2px solid var(--amber);
@@ -123,15 +135,6 @@ button {
   outline: 2px solid var(--amber);
 }
 
-[data-dragging-editable] {
-  opacity: 0.46;
-}
-
-[data-drop-target] {
-  background: rgba(15, 95, 89, 0.12);
-  outline: 2px solid var(--accent);
-}
-
 body.editing-content .topbar {
   background: rgba(255, 250, 240, 0.94);
 }
@@ -139,6 +142,68 @@ body.editing-content .topbar {
 body.editing-content .nav a,
 body.editing-content .mobile-cta a {
   pointer-events: none;
+}
+
+.edit-box-controls {
+  position: absolute;
+  z-index: 80;
+  min-width: 54px;
+  min-height: 34px;
+  border: 2px solid var(--accent);
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+.edit-box-move,
+.edit-box-reset {
+  position: absolute;
+  top: -34px;
+  min-height: 28px;
+  padding: 0 9px;
+  color: #fff;
+  background: var(--accent-strong);
+  border: 0;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 900;
+  pointer-events: auto;
+  cursor: grab;
+}
+
+.edit-box-reset {
+  left: 48px;
+  color: var(--accent-strong);
+  background: #fffdf8;
+  border: 1px solid rgba(15, 95, 89, 0.28);
+  cursor: pointer;
+}
+
+.edit-box-move {
+  left: 0;
+}
+
+.edit-box-resize {
+  position: absolute;
+  right: -8px;
+  bottom: -8px;
+  width: 16px;
+  height: 16px;
+  background: var(--amber);
+  border: 2px solid #fffdf8;
+  border-radius: 4px;
+  box-shadow: 0 8px 20px rgba(25, 25, 22, 0.2);
+  pointer-events: auto;
+  cursor: nwse-resize;
+}
+
+body[data-edit-pointer-active="move"],
+body[data-edit-pointer-active="move"] * {
+  cursor: grabbing !important;
+}
+
+body[data-edit-pointer-active="resize"],
+body[data-edit-pointer-active="resize"] * {
+  cursor: nwse-resize !important;
 }
 
 .nav {
