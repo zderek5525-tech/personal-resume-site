@@ -13,7 +13,12 @@
   <body>
     <header class="topbar" aria-label="顶部信息">
       <a class="brand" href="#home">姓名占位</a>
-      <button class="interview-toggle" type="button" data-interview-mode>面试官视角</button>
+      <div class="topbar-actions" aria-label="页面工具">
+        <button class="edit-toggle" type="button" data-edit-toggle>编辑资料</button>
+        <button class="edit-save" type="button" data-edit-save hidden>保存</button>
+        <button class="edit-reset" type="button" data-edit-reset hidden>恢复占位</button>
+        <button class="interview-toggle" type="button" data-interview-mode>面试官视角</button>
+      </div>
     </header>
 
     <nav class="nav side-nav" aria-label="页面导航">

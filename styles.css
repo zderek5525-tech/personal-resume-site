@@ -62,7 +62,17 @@ button {
   font-weight: 900;
 }
 
-.interview-toggle {
+.topbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.interview-toggle,
+.edit-toggle,
+.edit-save,
+.edit-reset {
   min-height: 38px;
   padding: 0 14px;
   color: var(--accent-strong);
@@ -71,6 +81,44 @@ button {
   border-radius: 8px;
   font-weight: 900;
   cursor: pointer;
+}
+
+.edit-toggle {
+  color: #fff;
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+}
+
+.edit-save {
+  color: #fff;
+  background: var(--amber);
+  border-color: var(--amber);
+}
+
+.edit-reset {
+  color: var(--amber);
+  border-color: rgba(183, 121, 47, 0.42);
+}
+
+[data-editable-active] {
+  cursor: text;
+  outline: 1px dashed rgba(183, 121, 47, 0.68);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+[data-editable-active]:focus {
+  background: rgba(255, 250, 240, 0.82);
+  outline: 2px solid var(--amber);
+}
+
+body.editing-content .topbar {
+  background: rgba(255, 250, 240, 0.94);
+}
+
+body.editing-content .nav a,
+body.editing-content .mobile-cta a {
+  pointer-events: none;
 }
 
 .nav {
@@ -754,6 +802,10 @@ h1 {
     gap: 12px;
   }
 
+  .topbar-actions {
+    gap: 6px;
+  }
+
   .side-nav {
     top: auto;
     right: 12px;
@@ -809,7 +861,20 @@ h1 {
 
 @media (max-width: 520px) {
   .topbar {
-    padding: 16px 20px;
+    padding: 14px 18px;
+  }
+
+  .topbar-actions {
+    justify-content: flex-start;
+  }
+
+  .interview-toggle,
+  .edit-toggle,
+  .edit-save,
+  .edit-reset {
+    min-height: 34px;
+    padding: 0 10px;
+    font-size: 12px;
   }
 
   .side-nav {
@@ -842,26 +907,39 @@ h1 {
   }
 
   .topbar {
-    min-height: 58px;
-    padding: 12px 16px;
+    display: grid;
+    min-height: 94px;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 10px 14px;
   }
 
   .brand {
-    max-width: 58vw;
+    max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
+  .topbar-actions {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    width: 100%;
+  }
+
   .interview-toggle {
-    min-height: 36px;
-    padding: 0 12px;
-    font-size: 13px;
+    padding: 0 6px;
+  }
+
+  .edit-toggle,
+  .edit-save,
+  .edit-reset {
+    padding: 0 6px;
   }
 
   .hero {
     min-height: auto;
-    padding: 76px 14px 18px;
+    padding: 112px 14px 18px;
   }
 
   .hero-inner {
