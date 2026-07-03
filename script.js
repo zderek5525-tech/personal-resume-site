@@ -5,6 +5,7 @@ const skillText = {
 };
 
 const EDIT_STORAGE_KEY = "personalResumeEditableContent";
+const PHOTO_STORAGE_KEY = "personalResumePhoto";
 const editableSelectors = [
   ".brand",
   ".hero-copy h1",
@@ -34,6 +35,9 @@ const editableSelectors = [
 ];
 const editableItems = [...document.querySelectorAll(editableSelectors.join(","))];
 const originalEditableText = new Map();
+const originalEditableFontSize = new Map();
+let activeEditableItem = null;
+let draggedEditableItem = null;
 
 const navLinks = [...document.querySelectorAll(".nav a")];
 const sections = navLinks
@@ -43,6 +47,7 @@ const sections = navLinks
 editableItems.forEach((item, index) => {
   item.dataset.editKey = item.dataset.editKey || `field-${index}`;
   originalEditableText.set(item.dataset.editKey, item.textContent);
+  originalEditableFontSize.set(item.dataset.editKey, item.style.fontSize || "");
 });
 
 const readSavedEdits = () => {
@@ -69,8 +74,48 @@ const updateDerivedFields = () => {
   }
 };
 
+const setPhotoPreview = (src, message) => {
+  const preview = document.querySelector("[data-photo-preview]");
+  const placeholder = document.querySelector("[data-photo-placeholder]");
+  const note = document.querySelector("[data-photo-note]");
+  if (!preview || !placeholder || !note) return;
+
+  preview.src = src;
+  preview.hidden = false;
+  placeholder.hidden = true;
+  note.textContent = message;
+};
+
+const applySavedPhoto = () => {
+  const savedPhoto = localStorage.getItem(PHOTO_STORAGE_KEY);
+  if (savedPhoto) {
+    setPhotoPreview(savedPhoto, "相片已保存，刷新页面后仍会显示。");
+  }
+};
+
+const compressPhoto = (file) =>
+  new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.addEventListener("load", () => {
+      const image = new Image();
+      image.addEventListener("load", () => {
+        const maxSize = 1200;
+        const scale = Math.min(1, maxSize / Math.max(image.width, image.height));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(image.width * scale);
+        canvas.height = Math.round(image.height * scale);
+        const context = canvas.getContext("2d");
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/jpeg", 0.86));
+      });
+      image.src = reader.result;
+    });
+    reader.readAsDataURL(file);
+  });
+
 const applySavedEdits = () => {
   const saved = readSavedEdits();
+  const savedFontSizes = saved.fontSizes || {};
   Object.keys(skillText).forEach((key) => {
     const savedSkillText = saved[`skill-${key}`];
     if (typeof savedSkillText === "string") {
@@ -82,8 +127,18 @@ const applySavedEdits = () => {
     if (typeof value === "string") {
       item.textContent = value;
     }
+    const fontSize = savedFontSizes[item.dataset.editKey];
+    if (typeof fontSize === "string") {
+      item.style.fontSize = fontSize;
+    }
   });
   updateDerivedFields();
+};
+
+const setActiveEditableItem = (item) => {
+  activeEditableItem?.removeAttribute("data-selected-editable");
+  activeEditableItem = item;
+  activeEditableItem?.setAttribute("data-selected-editable", "");
 };
 
 const setEditing = (enabled) => {
@@ -91,9 +146,12 @@ const setEditing = (enabled) => {
   document.querySelector("[data-edit-toggle]").textContent = enabled ? "退出编辑" : "编辑资料";
   document.querySelector("[data-edit-save]").hidden = !enabled;
   document.querySelector("[data-edit-reset]").hidden = !enabled;
+  document.querySelector("[data-font-smaller]").hidden = !enabled;
+  document.querySelector("[data-font-larger]").hidden = !enabled;
 
   editableItems.forEach((item) => {
     item.setAttribute("contenteditable", enabled ? "plaintext-only" : "false");
+    item.draggable = enabled;
     item.toggleAttribute("spellcheck", enabled);
     if (enabled) {
       item.dataset.editableActive = "";
@@ -101,20 +159,28 @@ const setEditing = (enabled) => {
       delete item.dataset.editableActive;
     }
   });
+  if (!enabled) {
+    setActiveEditableItem(null);
+  }
 };
 
 const saveEdits = () => {
   const next = {};
+  const fontSizes = {};
   const activeSkill = document.querySelector("[data-skill-tab].active")?.dataset.skillTab;
   if (activeSkill) {
     skillText[activeSkill] = document.querySelector("[data-skill-summary]").textContent.trim();
   }
   editableItems.forEach((item) => {
     next[item.dataset.editKey] = item.textContent.trim();
+    if (item.style.fontSize) {
+      fontSizes[item.dataset.editKey] = item.style.fontSize;
+    }
   });
   Object.keys(skillText).forEach((key) => {
     next[`skill-${key}`] = skillText[key];
   });
+  next.fontSizes = fontSizes;
   localStorage.setItem(EDIT_STORAGE_KEY, JSON.stringify(next));
   updateDerivedFields();
 
@@ -126,6 +192,7 @@ const saveEdits = () => {
 };
 
 applySavedEdits();
+applySavedPhoto();
 
 document.querySelector("[data-edit-toggle]")?.addEventListener("click", () => {
   setEditing(!document.body.classList.contains("editing-content"));
@@ -135,6 +202,7 @@ document.querySelector("[data-edit-save]")?.addEventListener("click", saveEdits)
 
 document.querySelector("[data-edit-reset]")?.addEventListener("click", () => {
   localStorage.removeItem(EDIT_STORAGE_KEY);
+  localStorage.removeItem(PHOTO_STORAGE_KEY);
   skillText.analysis = "当前重点：把信息、数据和需求整理成清楚的判断，并转化成可执行方案。";
   skillText.delivery = "当前重点：把任务拆成步骤，明确输入、输出和验收结果，稳定推进交付。";
   skillText.communication = "当前重点：把复杂内容讲清楚，让不同背景的人都能快速理解重点。";
@@ -142,7 +210,17 @@ document.querySelector("[data-edit-reset]")?.addEventListener("click", () => {
   document.querySelector('[data-skill-tab="analysis"]')?.classList.add("active");
   editableItems.forEach((item) => {
     item.textContent = originalEditableText.get(item.dataset.editKey);
+    item.style.fontSize = originalEditableFontSize.get(item.dataset.editKey);
   });
+  const preview = document.querySelector("[data-photo-preview]");
+  const placeholder = document.querySelector("[data-photo-placeholder]");
+  const note = document.querySelector("[data-photo-note]");
+  if (preview && placeholder && note) {
+    preview.removeAttribute("src");
+    preview.hidden = true;
+    placeholder.hidden = false;
+    note.textContent = "推荐使用正面职业照或生活照。";
+  }
   updateDerivedFields();
 });
 
@@ -150,29 +228,72 @@ editableItems.forEach((item) => {
   item.addEventListener("click", (event) => {
     if (document.body.classList.contains("editing-content")) {
       event.stopPropagation();
+      setActiveEditableItem(item);
       if (item.tagName === "A") {
         event.preventDefault();
       }
     }
   });
+  item.addEventListener("dragstart", (event) => {
+    if (!document.body.classList.contains("editing-content")) return;
+    draggedEditableItem = item;
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", item.dataset.editKey);
+    item.dataset.draggingEditable = "";
+  });
+  item.addEventListener("dragend", () => {
+    item.removeAttribute("data-dragging-editable");
+    document.querySelectorAll("[data-drop-target]").forEach((target) => {
+      target.removeAttribute("data-drop-target");
+    });
+    draggedEditableItem = null;
+  });
+  item.addEventListener("dragover", (event) => {
+    if (!document.body.classList.contains("editing-content") || !draggedEditableItem || draggedEditableItem === item) {
+      return;
+    }
+    event.preventDefault();
+    item.dataset.dropTarget = "";
+  });
+  item.addEventListener("dragleave", () => {
+    item.removeAttribute("data-drop-target");
+  });
+  item.addEventListener("drop", (event) => {
+    if (!document.body.classList.contains("editing-content") || !draggedEditableItem || draggedEditableItem === item) {
+      return;
+    }
+    event.preventDefault();
+    const nextText = item.textContent;
+    const nextFontSize = item.style.fontSize;
+    item.textContent = draggedEditableItem.textContent;
+    item.style.fontSize = draggedEditableItem.style.fontSize;
+    draggedEditableItem.textContent = nextText;
+    draggedEditableItem.style.fontSize = nextFontSize;
+    item.removeAttribute("data-drop-target");
+    setActiveEditableItem(item);
+    updateDerivedFields();
+  });
 });
 
-document.querySelector("[data-interview-mode]")?.addEventListener("click", (event) => {
-  const enabled = document.body.classList.toggle("interview-mode");
-  event.currentTarget.textContent = enabled ? "退出面试官视角" : "面试官视角";
+document.querySelector("[data-font-smaller]")?.addEventListener("click", () => {
+  if (!activeEditableItem) return;
+  const current = Number.parseFloat(getComputedStyle(activeEditableItem).fontSize);
+  activeEditableItem.style.fontSize = `${Math.max(11, current - 2)}px`;
 });
 
-document.querySelector("[data-photo-input]")?.addEventListener("change", (event) => {
+document.querySelector("[data-font-larger]")?.addEventListener("click", () => {
+  if (!activeEditableItem) return;
+  const current = Number.parseFloat(getComputedStyle(activeEditableItem).fontSize);
+  activeEditableItem.style.fontSize = `${Math.min(160, current + 2)}px`;
+});
+
+document.querySelector("[data-photo-input]")?.addEventListener("change", async (event) => {
   const file = event.currentTarget.files?.[0];
   if (!file) return;
 
-  const preview = document.querySelector("[data-photo-preview]");
-  const placeholder = document.querySelector("[data-photo-placeholder]");
-  const note = document.querySelector("[data-photo-note]");
-  preview.src = URL.createObjectURL(file);
-  preview.hidden = false;
-  placeholder.hidden = true;
-  note.textContent = "相片已加载为本地预览，刷新页面后需要重新选择。";
+  const photoData = await compressPhoto(file);
+  localStorage.setItem(PHOTO_STORAGE_KEY, photoData);
+  setPhotoPreview(photoData, "相片已保存，刷新页面后仍会显示。");
 });
 
 document.querySelectorAll("[data-stat-message]").forEach((item) => {

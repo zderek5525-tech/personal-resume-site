@@ -69,10 +69,10 @@ button {
   gap: 8px;
 }
 
-.interview-toggle,
 .edit-toggle,
 .edit-save,
-.edit-reset {
+.edit-reset,
+.font-button {
   min-height: 38px;
   padding: 0 14px;
   color: var(--accent-strong);
@@ -100,6 +100,12 @@ button {
   border-color: rgba(183, 121, 47, 0.42);
 }
 
+.font-button {
+  min-width: 44px;
+  color: var(--accent-strong);
+  background: rgba(15, 95, 89, 0.08);
+}
+
 [data-editable-active] {
   cursor: text;
   outline: 1px dashed rgba(183, 121, 47, 0.68);
@@ -110,6 +116,20 @@ button {
 [data-editable-active]:focus {
   background: rgba(255, 250, 240, 0.82);
   outline: 2px solid var(--amber);
+}
+
+[data-selected-editable] {
+  background: rgba(183, 121, 47, 0.12);
+  outline: 2px solid var(--amber);
+}
+
+[data-dragging-editable] {
+  opacity: 0.46;
+}
+
+[data-drop-target] {
+  background: rgba(15, 95, 89, 0.12);
+  outline: 2px solid var(--accent);
 }
 
 body.editing-content .topbar {
@@ -160,14 +180,6 @@ body.editing-content .mobile-cta a {
   color: var(--accent-strong);
   font-weight: 900;
   background: rgba(15, 95, 89, 0.1);
-}
-
-body.interview-mode .panel,
-body.interview-mode .project,
-body.interview-mode .timeline-item,
-body.interview-mode .resume-card {
-  outline: 2px solid rgba(15, 95, 89, 0.18);
-  outline-offset: 3px;
 }
 
 .hero {
@@ -868,10 +880,10 @@ h1 {
     justify-content: flex-start;
   }
 
-  .interview-toggle,
   .edit-toggle,
   .edit-save,
-  .edit-reset {
+  .edit-reset,
+  .font-button {
     min-height: 34px;
     padding: 0 10px;
     font-size: 12px;
@@ -923,17 +935,14 @@ h1 {
 
   .topbar-actions {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     width: 100%;
-  }
-
-  .interview-toggle {
-    padding: 0 6px;
   }
 
   .edit-toggle,
   .edit-save,
-  .edit-reset {
+  .edit-reset,
+  .font-button {
     padding: 0 6px;
   }
 
